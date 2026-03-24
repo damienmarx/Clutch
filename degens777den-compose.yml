@@ -1,0 +1,37 @@
+# Degens777Den Unified Platform
+# cloutscape.org Slots Engine + Cloudflare Tunnel
+
+services:
+
+  # The Clutch Slots Engine
+  degens777den-engine:
+    image: schwarzlichtbezirk/slotopol:latest
+    container_name: degens777den-srv
+    ports:
+      - 8080:8080
+    volumes:
+      # Persistent local SQLite databases
+      - ./degens777den-club.sqlite:/home/ubuntu/degens777den-club.sqlite
+      - ./degens777den-spin.sqlite:/home/ubuntu/degens777den-spin.sqlite
+      # Custom branding and configuration
+      - ./degens777den.yaml:/home/ubuntu/slot-app.yaml
+    restart: unless-stopped
+    stop_signal: SIGINT
+    stop_grace_period: 15s
+
+  # Cloudflare Tunnel for Secure Access
+  cloudflared-tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: degens777den-tunnel
+    command: tunnel --config /etc/cloudflared/config.yaml run
+    volumes:
+      # Tunnel configuration and credentials
+      - ./cloudflared-config.yaml:/etc/cloudflared/config.yaml
+      - ./cloudflared-credentials.json:/etc/cloudflared/credentials.json
+    depends_on:
+      - degens777den-engine
+    restart: unless-stopped
+
+networks:
+  default:
+    name: degens777den-net

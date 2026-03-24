@@ -1,0 +1,23 @@
+# Cloudflare Tunnel configuration for Degens777Den
+# cloutscape.org Unified Platform
+
+tunnel: degens777den-tunnel
+credentials-file: /etc/cloudflared/credentials.json
+
+ingress:
+  # Route the game engine API
+  - hostname: api.cloutscape.org
+    service: http://localhost:8080
+  # Route the frontend UI
+  - hostname: cloutscape.org
+    service: http://localhost:3000
+  # Default catch-all
+  - service: http_status:404
+
+# Cloudflared performance tuning
+warp-routing:
+  enabled: true
+
+# Logging configuration
+loglevel: info
+logfile: /var/log/cloudflared.log

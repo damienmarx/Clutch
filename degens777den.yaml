@@ -1,0 +1,45 @@
+# Degens777Den Unified Platform Configuration
+# Unified slots engine for cloutscape.org
+
+authentication:
+  access-ttl: 24h
+  refresh-ttl: 72h
+  # Re-generate these for production!
+  access-key: "degens777den_access_key_replace_this_in_production"
+  refresh-key: "degens777den_refresh_key_replace_this_in_production"
+  nonce-timeout: 2m30s
+
+activation:
+  # Using local auth bypass for unified platform
+  use-activation: false
+  sender-name: "Degens777Den Support"
+  sender-email: "support@cloutscape.org"
+  replyto-email: "noreply@cloutscape.org"
+  email-subject: "Degens777Den Verification Code"
+
+web-server:
+  # Trusted proxies for Cloudflare Tunnel
+  trusted-proxies: 
+    - 127.0.0.1/32
+  port-http:
+    - :8080
+  read-timeout: 30s
+  write-timeout: 30s
+  shutdown-timeout: 15s
+
+database:
+  # Local SQLite database for unified platform
+  driver-name: sqlite3
+  use-spin-log: true
+  club-source-name: degens777den-club.sqlite
+  spin-source-name: degens777den-spin.sqlite
+  sql-flush-tick: 1000ms
+  club-update-buffer: 100
+  club-insert-buffer: 100
+  spin-insert-buffer: 200
+
+gameplay:
+  # Limits for Degens777Den
+  adjunct-limit: 1000000
+  min-jackpot: 5000
+  max-spin-attempts: 500
