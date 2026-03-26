@@ -15,9 +15,19 @@ services:
       - ./degens777den-spin.sqlite:/home/ubuntu/degens777den-spin.sqlite
       # Custom branding and configuration
       - ./degens777den.yaml:/home/ubuntu/slot-app.yaml
+    environment:
+      # Pass config file location to the app
+      SLOTOPOL_CONFIG: /home/ubuntu/slot-app.yaml
     restart: unless-stopped
     stop_signal: SIGINT
     stop_grace_period: 15s
+    # Health check to ensure the engine is responsive
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   # Cloudflare Tunnel for Secure Access
   cloudflared-tunnel:
@@ -29,8 +39,16 @@ services:
       - ./cloudflared-config.yaml:/etc/cloudflared/config.yaml
       - ./cloudflared-credentials.json:/etc/cloudflared/credentials.json
     depends_on:
-      - degens777den-engine
+      degens777den-engine:
+        condition: service_healthy
     restart: unless-stopped
+    # Health check for the tunnel
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 networks:
   default:
