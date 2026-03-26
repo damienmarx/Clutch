@@ -126,6 +126,10 @@ func Ret500(c *gin.Context, code int, err error) {
 }
 
 func SetupRouter(r *gin.Engine) {
+	r.Static("/ui", "ui")
+	r.StaticFile("/", "ui/index.html")
+	r.StaticFile("/favicon.ico", "ui/favicon.ico")
+
 	r.NoRoute(Handle404)
 	r.NoMethod(Handle405)
 	//r.Use(gzip.Gzip(gzip.DefaultCompression))

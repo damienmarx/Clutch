@@ -151,11 +151,15 @@ func ApiUserDelete(c *gin.Context) {
 		UID     uint64   `json:"uid" yaml:"uid" xml:"uid,attr" form:"uid" binding:"required"`
 		Secret  string   `json:"secret" yaml:"secret" xml:"secret" form:"secret"`
 	}
-	var ret struct {
-		XMLName xml.Name           `json:"-" yaml:"-" xml:"ret"`
-		Wallets map[uint64]float64 `json:"wallets" yaml:"wallets" xml:"wallets"`
+	type walletItem struct {
+		CID    uint64  `json:"cid" yaml:"cid" xml:"cid,attr"`
+		Wallet float64 `json:"wallet" yaml:"wallet" xml:",chardata"`
 	}
-	ret.Wallets = map[uint64]float64{}
+	var ret struct {
+		XMLName xml.Name     `json:"-" yaml:"-" xml:"ret"`
+		Wallets []walletItem `json:"wallets" yaml:"wallets" xml:"wallets>item"`
+	}
+	ret.Wallets = []walletItem{}
 
 	if err = c.ShouldBind(&arg); err != nil {
 		Ret400(c, AEC_user_delete_nobind, err)
@@ -212,11 +216,10 @@ func ApiUserDelete(c *gin.Context) {
 
 	Users.Delete(arg.UID)
 	for cid, props := range user.props.Items() {
-		ret.Wallets[cid] = props.Wallet
 		if club, ok := Clubs.Get(cid); ok && props.Wallet != 0 {
 			club.AddDeposit(props.Wallet)
-			ret.Wallets[cid] = props.Wallet
 		}
+		ret.Wallets = append(ret.Wallets, walletItem{CID: cid, Wallet: props.Wallet})
 	}
 	for gid, scene := range Scenes.Items() {
 		if scene.UID == arg.UID {

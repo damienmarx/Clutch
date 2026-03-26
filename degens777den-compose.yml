@@ -11,13 +11,14 @@ services:
       - 8080:8080
     volumes:
       # Persistent local SQLite databases
-      - ./degens777den-club.sqlite:/home/ubuntu/degens777den-club.sqlite
-      - ./degens777den-spin.sqlite:/home/ubuntu/degens777den-spin.sqlite
+      - ./degens777den-club.sqlite:/go/bin/sqlite/degens777den-club.sqlite
+      - ./degens777den-spin.sqlite:/go/bin/sqlite/degens777den-spin.sqlite
       # Custom branding and configuration
-      - ./degens777den.yaml:/home/ubuntu/slot-app.yaml
+      - ./degens777den.yaml:/go/bin/config/slot-app.yaml
     environment:
       # Pass config file location to the app
-      SLOTOPOL_CONFIG: /home/ubuntu/slot-app.yaml
+      SLOTOPOL_CFGFILE: /go/bin/config/slot-app.yaml
+      SLOTOPOL_SQLPATH: /go/bin/sqlite/
     restart: unless-stopped
     stop_signal: SIGINT
     stop_grace_period: 15s
