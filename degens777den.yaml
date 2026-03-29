@@ -5,8 +5,8 @@ authentication:
   access-ttl: 24h
   refresh-ttl: 72h
   # Re-generate these for production!
-  access-key: "degens777den_access_key_replace_this_in_production"
-  refresh-key: "degens777den_refresh_key_replace_this_in_production"
+  access-key: "eBKML6LqNXZx22KVxwEdyX5ffuaSUaF4"
+  refresh-key: "RlCbR8qzp3UPuE3jQhBXo6UUtFgeJ0bI"
   nonce-timeout: 2m30s
 
 activation:
@@ -39,13 +39,18 @@ web-server:
     - 190.93.240.0/20      # Cloudflare
     - 197.234.240.0/22     # Cloudflare
     - 198.41.128.0/17      # Cloudflare
-  port-http: ":8080"
+  port-http: ":8081"
   read-timeout: 30s
   read-header-timeout: 15s
   write-timeout: 30s
   idle-timeout: 60s
   max-header-bytes: 1048576
   shutdown-timeout: 15s
+
+# Production Process Management:
+# In a production environment, it is highly recommended to manage this process
+# using a process manager like PM2 or systemd to ensure it restarts automatically
+# on crashes or server reboots. The main Kodakclout deploy.sh script will handle this.
 
 database:
   # Local SQLite database for unified platform
