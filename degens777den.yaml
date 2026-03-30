@@ -5,8 +5,8 @@ authentication:
   access-ttl: 24h
   refresh-ttl: 72h
   # Re-generate these for production!
-  access-key: "eBKML6LqNXZx22KVxwEdyX5ffuaSUaF4"
-  refresh-key: "RlCbR8qzp3UPuE3jQhBXo6UUtFgeJ0bI"
+  access-key: "K4YYSu2acS/escrN0k41kMRxq2hqErUjy5PQzIuSMSs="
+  refresh-key: "RdZat5o5H2qS49AJ1YjVN53Tvebm1FuQZzdUhH/YiMg="
   nonce-timeout: 2m30s
 
 activation:
