@@ -1,42 +1,43 @@
-# Cloudflare Tunnel configuration for Degens777Den
-# cloutscape.org Unified Platform
+# Cloudflare Tunnel - Cloutscape / Degens Den
 #
-# Tunnel name: degens777den-tunnel
-# Credentials file is mounted at /etc/cloudflared/credentials.json inside the container.
-# To generate credentials on the host, run:
-#   cloudflared tunnel create degens777den-tunnel
-#   cloudflared tunnel route dns degens777den-tunnel cloutscape.org
-#   cloudflared tunnel route dns degens777den-tunnel api.cloutscape.org
+# Usage on the host:
+#   cloudflared tunnel login
+#   cloudflared tunnel create cloutscape
+#   cloudflared tunnel route dns cloutscape cloutscape.org
+#   cloudflared tunnel route dns cloutscape www.cloutscape.org
+#   cloudflared tunnel route dns cloutscape api.cloutscape.org
+#   cloudflared --config $(pwd)/cloudflared-config.yaml tunnel run cloutscape
 
-tunnel: degens777den-tunnel
+tunnel: cloutscape
 credentials-file: /etc/cloudflared/credentials.json
 
 ingress:
-  # Route the game engine REST API
+  # Game engine REST + iframe UI
   - hostname: api.cloutscape.org
-    service: http://degens777den-engine:8080
+    service: http://localhost:8081
     originRequest:
-      # Forward real client IP via CF-Connecting-IP header
-      noTLSVerify: false
+      noTLSVerify: true
       connectTimeout: 10s
-      tcpKeepAlive: 30s
       keepAliveConnections: 100
       keepAliveTimeout: 90s
-      httpHostHeader: api.cloutscape.org
 
-  # Route the main site — the Go backend serves the web UI on port 8080
+  # Main lobby (Kodakclout)
+  - hostname: www.cloutscape.org
+    service: http://localhost:8080
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 10s
+      keepAliveConnections: 100
+      keepAliveTimeout: 90s
+
   - hostname: cloutscape.org
-    service: http://degens777den-engine:8080
+    service: http://localhost:8080
     originRequest:
-      noTLSVerify: false
+      noTLSVerify: true
       connectTimeout: 10s
-      tcpKeepAlive: 30s
       keepAliveConnections: 100
       keepAliveTimeout: 90s
-      httpHostHeader: cloutscape.org
 
-  # Default catch-all — return 404 for any unmatched hostname
   - service: http_status:404
 
-# Logging (stdout only; file logging is not supported inside the cloudflared container)
 loglevel: info
