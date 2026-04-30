@@ -1,151 +1,473 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Clutch · Game</title>
-  <style>
-    :root { color-scheme: dark; }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; background: #0b0d10; color: #e6e6e6;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-    #app { min-height: 100%; display: flex; flex-direction: column; }
-    header { padding: .75rem 1rem; background: #12161b; border-bottom: 1px solid #222832;
-      display: flex; align-items: center; justify-content: space-between; font-size: .9rem; }
-    .brand { display: flex; align-items: center; gap: .6rem; font-weight: 600; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #20c997; box-shadow: 0 0 8px #20c99780; }
-    .meta { opacity: .7; font-variant-numeric: tabular-nums; }
-    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-    .card { max-width: 720px; width: 100%; background: #12161b; border: 1px solid #222832;
-      border-radius: 14px; padding: 2rem; box-shadow: 0 10px 40px #0008; }
-    h1 { margin: 0 0 .4rem; font-size: 1.4rem; letter-spacing: .3px; }
-    p { margin: .3rem 0; opacity: .85; line-height: 1.5; }
-    code { background: #0b0d10; padding: 2px 6px; border-radius: 4px; font-size: .85em; color: #ffb454; }
-    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; margin-top: 1rem; }
-    .kv { background: #0b0d10; padding: .6rem .8rem; border-radius: 8px; border: 1px solid #1a1f26; }
-    .kv b { display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: 1px; opacity: .6; margin-bottom: 2px; }
-    .actions { margin-top: 1.25rem; display: flex; gap: .6rem; flex-wrap: wrap; }
-    button { background: #ffb454; color: #0b0d10; border: 0; padding: .65rem 1.1rem; border-radius: 8px;
-      font-weight: 600; cursor: pointer; }
-    button.secondary { background: transparent; color: #e6e6e6; border: 1px solid #2a313c; }
-    button:disabled { opacity: .5; cursor: not-allowed; }
-    #log { margin-top: 1rem; background: #0b0d10; border-radius: 8px; border: 1px solid #1a1f26;
-      padding: .75rem; font-family: ui-monospace, Menlo, monospace; font-size: .8rem;
-      max-height: 260px; overflow: auto; white-space: pre-wrap; }
-    .error { color: #ff6b6b; }
-    .ok { color: #20c997; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#0a0606" />
+<title>Clutch · Casino Engine</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+<style>
+  /* =========================================================================
+     CLUTCH · Luxury Game Session Loader
+     No external fonts, no external CDNs, zero network dependencies.
+     ========================================================================= */
+  :root {
+    --bg-0: #080406;
+    --bg-1: #0e0708;
+    --bg-2: #160a0c;
+    --line: rgba(255, 205, 130, .12);
+    --line-strong: rgba(255, 205, 130, .28);
+    --gold: #f6c87a;
+    --gold-2: #e2a34a;
+    --gold-ink: #30210c;
+    --text: #f4ecd8;
+    --text-dim: rgba(244, 236, 216, .58);
+    --text-faint: rgba(244, 236, 216, .32);
+    --emerald: #70d6a2;
+    --rose: #f06e7a;
+    --amber: #ffbf5c;
+    --shadow-lux: 0 20px 80px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.04) inset;
+    --radius: 22px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%; background: var(--bg-0); color: var(--text);
+    font-family: "Didot","Bodoni 72","Playfair Display",Georgia,"Times New Roman",serif;
+    font-feature-settings: "kern" 1, "liga" 1, "ss01" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    /* cinematic vignette + aurora */
+    content: "";
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(1200px 800px at 80% -10%, rgba(246,200,122,.10), transparent 60%),
+      radial-gradient(900px 700px at -10% 110%, rgba(176,30,62,.14), transparent 60%),
+      radial-gradient(600px 500px at 50% 120%, rgba(246,200,122,.06), transparent 70%);
+    filter: saturate(1.1);
+  }
+  body::after {
+    /* film-grain texture via SVG data URI (no external req) */
+    content: "";
+    position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: .05;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.7 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: overlay;
+  }
+
+  .ui-font-sans { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+
+  /* ───── layout ───── */
+  #app { position: relative; z-index: 2; min-height: 100vh; display: flex; flex-direction: column; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px clamp(20px, 4vw, 48px);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(18px) saturate(140%);
+    background: linear-gradient(180deg, rgba(14,7,8,.85), rgba(14,7,8,.55));
+  }
+  .brand {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 22px; letter-spacing: .12em; text-transform: uppercase;
+  }
+  .brand-mark {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #f8d79a 0%, var(--gold) 35%, #8b5a1a 100%);
+    box-shadow: 0 8px 30px rgba(246,200,122,.35), inset 0 1px 2px rgba(255,255,255,.4), inset 0 -4px 6px rgba(0,0,0,.35);
+    position: relative;
+  }
+  .brand-mark::after {
+    content: "C"; position: absolute; inset: 0; display: grid; place-items: center;
+    font-weight: 900; color: var(--gold-ink); font-family: "Didot","Playfair Display",serif;
+    font-size: 18px; letter-spacing: 0;
+  }
+  .brand .sep { width: 1px; height: 18px; background: var(--line-strong); }
+  .brand .tag {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10px; color: var(--text-dim); letter-spacing: .3em;
+  }
+  .hdr-meta {
+    display: flex; align-items: center; gap: 14px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px; color: var(--text-dim); letter-spacing: .18em; text-transform: uppercase;
+  }
+  .pulse {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--emerald);
+    box-shadow: 0 0 0 0 rgba(112,214,162,.7);
+    animation: pulse 1.6s ease-out infinite;
+  }
+  .pulse.bad { background: var(--rose); box-shadow: 0 0 0 0 rgba(240,110,122,.7); }
+  .pulse.warm { background: var(--amber); box-shadow: 0 0 0 0 rgba(255,191,92,.7); }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+    70% { box-shadow: 0 0 0 10px rgba(0,0,0,0); opacity: .6; }
+    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); opacity: 1; }
+  }
+
+  main {
+    flex: 1; display: grid; place-items: center;
+    padding: clamp(20px, 4vw, 48px);
+  }
+  .stage {
+    width: 100%; max-width: 1120px;
+    display: grid; grid-template-columns: 1.35fr .85fr; gap: 28px;
+  }
+  @media (max-width: 960px) { .stage { grid-template-columns: 1fr; } }
+
+  .card {
+    background: linear-gradient(160deg, rgba(28,14,16,.94), rgba(14,7,8,.94));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lux);
+    overflow: hidden; position: relative;
+  }
+  .card::before {
+    /* gilded top edge */
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold-2) 50%, var(--gold) 80%, transparent);
+    opacity: .7;
+  }
+  .card.pad { padding: clamp(22px, 3vw, 36px); }
+
+  /* ───── hero (left) ───── */
+  .hero-kicker {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10px; letter-spacing: .32em; text-transform: uppercase;
+    color: var(--gold); padding: 8px 12px; border: 1px solid var(--line-strong);
+    border-radius: 999px; background: rgba(246,200,122,.04);
+  }
+  .hero-title {
+    margin: 18px 0 8px; font-size: clamp(32px, 4.4vw, 54px);
+    line-height: 1.04; letter-spacing: -.01em;
+    background: linear-gradient(180deg, #fff6df 0%, #f6c87a 60%, #c68f3e 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 2px 40px rgba(246,200,122,.18);
+  }
+  .hero-sub { color: var(--text-dim); font-size: 15px; line-height: 1.55; max-width: 54ch; }
+  .divider { height: 1px; margin: 28px 0; background: linear-gradient(90deg, transparent, var(--line-strong), transparent); }
+
+  .kv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 560px) { .kv-grid { grid-template-columns: repeat(2, 1fr); } }
+  .kv {
+    padding: 14px 16px; border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+    border: 1px solid var(--line);
+  }
+  .kv b {
+    display: block; font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 9.5px; letter-spacing: .32em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 6px;
+  }
+  .kv .val { font-size: 18px; letter-spacing: .02em; color: var(--text); }
+  .kv .val.gold {
+    background: linear-gradient(180deg, #fff6df, var(--gold));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .actions { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    appearance: none; border: 0; cursor: pointer; user-select: none;
+    font-family: inherit; font-size: 13px; letter-spacing: .24em; text-transform: uppercase;
+    padding: 14px 22px; border-radius: 12px;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, opacity .2s;
+  }
+  .btn:active { transform: translateY(1px) scale(.99); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-gold {
+    color: var(--gold-ink);
+    background: linear-gradient(180deg, #fde3ad 0%, var(--gold) 40%, #b78337 100%);
+    box-shadow: 0 10px 30px rgba(246,200,122,.28), inset 0 1px 0 rgba(255,255,255,.45), inset 0 -2px 0 rgba(0,0,0,.18);
+    font-weight: 700;
+  }
+  .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 14px 40px rgba(246,200,122,.35), inset 0 1px 0 rgba(255,255,255,.55); }
+  .btn-ghost {
+    color: var(--text); background: transparent; border: 1px solid var(--line-strong);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,.03); border-color: var(--gold); }
+
+  /* ───── right column (console) ───── */
+  .console { display: flex; flex-direction: column; gap: 16px; }
+  .tile {
+    padding: 20px 22px; border-radius: 16px; border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(246,200,122,.03), rgba(246,200,122,0));
+  }
+  .tile h3 {
+    margin: 0 0 4px; font-size: 13px; letter-spacing: .3em; text-transform: uppercase;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--gold);
+    font-weight: 400;
+  }
+  .wallet-num {
+    font-family: "Didot","Playfair Display",Georgia,serif;
+    font-size: 44px; line-height: 1; letter-spacing: .01em;
+    background: linear-gradient(180deg, #fff6df, var(--gold) 70%, #a97230);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-variant-numeric: tabular-nums;
+  }
+  .wallet-coin { font-size: 12px; letter-spacing: .28em; color: var(--text-faint); margin-left: 8px; text-transform: uppercase; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .chip {
+    padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim);
+  }
+  .chip.gold { color: var(--gold-ink); background: var(--gold); border-color: transparent; font-weight: 700; }
+
+  .log {
+    padding: 14px 16px; border-radius: 14px;
+    border: 1px solid var(--line); background: rgba(0,0,0,.35);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11.5px; line-height: 1.6;
+    max-height: 220px; overflow-y: auto;
+    color: var(--text-dim);
+  }
+  .log .err { color: var(--rose); }
+  .log .ok  { color: var(--emerald); }
+  .log .warn { color: var(--amber); }
+  .log::-webkit-scrollbar { width: 6px; }
+  .log::-webkit-scrollbar-thumb { background: rgba(246,200,122,.25); border-radius: 6px; }
+
+  /* ───── loading reel (while /game/info pending) ───── */
+  .reel {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin: 4px 0 18px;
+  }
+  .reel .col {
+    height: 72px; border-radius: 12px; border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(246,200,122,.06), rgba(0,0,0,.4));
+    display: grid; place-items: center; overflow: hidden; position: relative;
+  }
+  .reel .sym {
+    font-size: 30px; font-family: "Didot","Playfair Display",serif; color: var(--gold);
+    animation: spinSym .6s linear infinite;
+  }
+  .reel .col:nth-child(2) .sym { animation-duration: .8s; }
+  .reel .col:nth-child(3) .sym { animation-duration: 1.0s; }
+  @keyframes spinSym {
+    0% { transform: translateY(-40px); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(40px); opacity: 0; }
+  }
+  .reel.stop .sym { animation: none; }
+
+  footer {
+    padding: 18px clamp(20px, 4vw, 48px);
+    border-top: 1px solid var(--line);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--text-faint);
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  a { color: inherit; }
+</style>
 </head>
 <body>
-  <div id="app">
-    <header>
-      <div class="brand"><span class="dot"></span> Clutch Game Session</div>
-      <div class="meta" id="hdrMeta">connecting…</div>
-    </header>
-    <main>
-      <div class="card">
-        <h1 id="gameTitle">Loading game…</h1>
-        <p id="subtitle">Verifying session with the engine.</p>
+<div id="app">
+  <header>
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>Clutch</span>
+      <span class="sep"></span>
+      <span class="tag">Game Engine · Live Session</span>
+    </div>
+    <div class="hdr-meta" id="hdrMeta">
+      <span class="pulse warm" id="hdrDot"></span>
+      <span id="hdrText">connecting…</span>
+    </div>
+  </header>
 
-        <div class="grid">
-          <div class="kv"><b>Game ID</b><span id="kGid">–</span></div>
-          <div class="kv"><b>Club ID</b><span id="kCid">–</span></div>
-          <div class="kv"><b>User ID</b><span id="kUid">–</span></div>
-          <div class="kv"><b>Status</b><span id="kStatus">–</span></div>
-          <div class="kv"><b>Wallet</b><span id="kWallet">–</span></div>
-          <div class="kv"><b>Alias</b><span id="kAlias">–</span></div>
+  <main>
+    <section class="stage">
+      <article class="card pad">
+        <span class="hero-kicker">◆ Private Table · 24-karat</span>
+        <h1 class="hero-title" id="gameTitle">Preparing the salon…</h1>
+        <p class="hero-sub" id="subtitle">Your private game room is being dressed. A cosmetic loader is shown while the engine finalises the session — full animated canvas drops in when the Slotopol client is bundled.</p>
+
+        <div class="reel" id="reel">
+          <div class="col"><span class="sym">♠</span></div>
+          <div class="col"><span class="sym">♣</span></div>
+          <div class="col"><span class="sym">♥</span></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="kv-grid">
+          <div class="kv"><b>Game ID</b><div class="val mono" id="kGid">—</div></div>
+          <div class="kv"><b>Club</b><div class="val mono" id="kCid">—</div></div>
+          <div class="kv"><b>Seat</b><div class="val mono" id="kUid">—</div></div>
+          <div class="kv"><b>Alias</b><div class="val" id="kAlias">—</div></div>
+          <div class="kv"><b>Status</b><div class="val" id="kStatus">idle</div></div>
+          <div class="kv"><b>Engine</b><div class="val mono" id="kHost">localhost</div></div>
         </div>
 
         <div class="actions">
-          <button id="btnSpin" disabled>Spin</button>
-          <button id="btnReload" class="secondary">Reload</button>
+          <button class="btn btn-gold" id="btnSpin" disabled>◊ Place &amp; Spin</button>
+          <button class="btn btn-ghost" id="btnReload">⟳ Reload session</button>
+          <button class="btn btn-ghost" id="btnFullscreen">⤢ Fullscreen</button>
         </div>
+      </article>
 
-        <div id="log"></div>
-      </div>
-    </main>
-  </div>
+      <aside class="console">
+        <div class="tile">
+          <h3>Wallet</h3>
+          <div><span class="wallet-num" id="kWallet">—</span><span class="wallet-coin">coins</span></div>
+          <div class="chips" id="chips">
+            <span class="chip">engine-side</span>
+            <span class="chip">mirrored to lobby</span>
+          </div>
+        </div>
+        <div class="tile">
+          <h3>Event Log</h3>
+          <div class="log" id="log"></div>
+        </div>
+        <div class="tile">
+          <h3>Session</h3>
+          <div class="chips">
+            <span class="chip" id="chipAuth">auth: svc</span>
+            <span class="chip" id="chipTime">—</span>
+          </div>
+          <p class="ui-font-sans" style="color:var(--text-dim);font-size:12px;line-height:1.55;margin:10px 0 0">
+            Clutch is running headless. Every spin is signed server-side — the client never handles RNG.
+            Powered by the Slotopol engine fork and curated by the Kodakclout lobby.
+          </p>
+        </div>
+      </aside>
+    </section>
+  </main>
 
-  <script>
-    const qs = new URLSearchParams(location.search);
-    const gid = qs.get("gid");
-    const cid = qs.get("cid");
-    const uid = qs.get("uid");
+  <footer>
+    <span>© Kodakclout · Clutch Engine</span>
+    <span id="footMeta">—</span>
+  </footer>
+</div>
 
-    const $ = (id) => document.getElementById(id);
-    $("kGid").textContent = gid || "missing";
-    $("kCid").textContent = cid || "missing";
-    $("kUid").textContent = uid || "missing";
+<script>
+"use strict";
+(() => {
+  const qs  = new URLSearchParams(location.search);
+  const gid = qs.get("gid");
+  const cid = qs.get("cid");
+  const uid = qs.get("uid");
 
-    const log = (m, cls) => {
-      const el = $("log");
-      const line = document.createElement("div");
-      if (cls) line.className = cls;
-      line.textContent = `[${new Date().toLocaleTimeString()}] ${m}`;
-      el.appendChild(line);
-      el.scrollTop = el.scrollHeight;
-    };
+  const $ = (id) => document.getElementById(id);
+  const setText = (id, v) => { const el = $(id); if (el) el.textContent = v; };
 
-    async function callEngine(path, body) {
-      const res = await fetch(path, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const txt = await res.text();
-      let data; try { data = JSON.parse(txt); } catch { data = txt; }
-      if (!res.ok) {
-        const what = typeof data === "object" ? (data.what || data.error || JSON.stringify(data)) : data;
-        throw new Error(`HTTP ${res.status}: ${what}`);
-      }
-      return data;
-    }
+  setText("kGid",  gid || "missing");
+  setText("kCid",  cid || "missing");
+  setText("kUid",  uid || "missing");
+  setText("kHost", location.host || "localhost");
+  setText("chipTime", new Date().toLocaleTimeString());
+  setInterval(() => setText("chipTime", new Date().toLocaleTimeString()), 1000);
 
-    async function init() {
-      if (!gid || !cid || !uid) {
-        $("gameTitle").textContent = "Missing session parameters";
-        $("subtitle").textContent = "This page must be opened from the Kodakclout lobby.";
-        $("hdrMeta").textContent = "no session";
-        log("Query params gid/cid/uid are required.", "error");
-        return;
-      }
-      try {
-        log(`Fetching info for gid=${gid}…`);
-        const info = await callEngine("/game/info", { gid: Number(gid) });
-        $("kAlias").textContent = info.alias || "-";
-        $("kWallet").textContent = (info.wallet ?? 0).toString();
-        $("kStatus").textContent = "ready";
-        $("gameTitle").textContent = `${info.alias || "Game"} · session live`;
-        $("subtitle").textContent = "Engine connected. This is the Kodakclout bundled loader – drop in the full Slotopol client for the animated game canvas.";
-        $("hdrMeta").textContent = `cid=${cid} · uid=${uid}`;
-        $("btnSpin").disabled = false;
-        log("Engine connection verified.", "ok");
-      } catch (err) {
-        $("gameTitle").textContent = "Session could not be loaded";
-        $("subtitle").textContent = "The engine refused the request. Check that the service account and club access are set up correctly.";
-        $("kStatus").textContent = "error";
-        $("hdrMeta").textContent = "error";
-        log(err.message, "error");
-      }
-    }
+  const logEl = $("log");
+  const log = (msg, cls) => {
+    const line = document.createElement("div");
+    if (cls) line.className = cls;
+    const ts = new Date().toLocaleTimeString();
+    line.textContent = `[${ts}] ${msg}`;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  };
 
-    $("btnReload").addEventListener("click", () => location.reload());
-    $("btnSpin").addEventListener("click", async () => {
-      $("btnSpin").disabled = true;
-      try {
-        log(`Spinning gid=${gid}…`);
-        const out = await callEngine("/slot/spin", { gid: Number(gid) });
-        $("kWallet").textContent = (out.wallet ?? 0).toString();
-        log(`Spin ok · gain=${out.gain ?? 0}`, "ok");
-      } catch (err) {
-        log(err.message, "error");
-      } finally {
-        $("btnSpin").disabled = false;
-      }
+  const setHeader = (mode, text) => {
+    const dot = $("hdrDot");
+    dot.classList.remove("warm", "bad");
+    if (mode === "ok")   dot.classList.add(""); // default green
+    if (mode === "warn") dot.classList.add("warm");
+    if (mode === "err")  dot.classList.add("bad");
+    setText("hdrText", text);
+  };
+
+  const setFooter = () => setText("footMeta", `gid=${gid || "—"} · cid=${cid || "—"} · uid=${uid || "—"}`);
+  setFooter();
+
+  async function callEngine(path, body) {
+    const res = await fetch(path, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
+    const txt = await res.text();
+    let data; try { data = JSON.parse(txt); } catch { data = txt; }
+    if (!res.ok) {
+      const what = typeof data === "object" ? (data.what || data.error || JSON.stringify(data)) : data;
+      throw new Error(`HTTP ${res.status} · ${what}`);
+    }
+    return data;
+  }
 
-    init();
-  </script>
+  async function init() {
+    if (!gid || !cid || !uid) {
+      setText("gameTitle", "Missing session");
+      setText("subtitle", "Open a game from the Kodakclout lobby – this page expects gid/cid/uid query parameters.");
+      setHeader("err", "no session");
+      $("reel").classList.add("stop");
+      log("Query params gid/cid/uid are required.", "err");
+      return;
+    }
+    try {
+      log(`Resolving session gid=${gid}…`);
+      const info = await callEngine("/game/info", { gid: Number(gid) });
+      setText("kAlias",  info.alias || "—");
+      setText("kStatus", "ready");
+      setText("kWallet", Number(info.wallet ?? 0).toLocaleString());
+      setText("gameTitle", prettyTitle(info.alias) || "Session Live");
+      setText("subtitle", "Engine connection secured — spins are signed on the server and written to the spin log. This is Kodakclout's bundled loader; drop the full Slotopol client into /ui for the animated canvas.");
+      setHeader("ok", `cid=${cid} · uid=${uid}`);
+      $("reel").classList.add("stop");
+      $("btnSpin").disabled = false;
+      log("Session verified.", "ok");
+    } catch (err) {
+      setText("gameTitle", "Session refused");
+      setText("subtitle", "The engine did not authorise this session. Check that the service account exists in slot-club.sqlite with gal=31, and that the signed-in user has ALmember on the club.");
+      setText("kStatus", "error");
+      setHeader("err", "error");
+      $("reel").classList.add("stop");
+      log(err.message, "err");
+    }
+  }
+
+  function prettyTitle(alias) {
+    if (!alias) return "";
+    return String(alias)
+      .replace(/[-_]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1));
+  }
+
+  $("btnReload").addEventListener("click", () => location.reload());
+  $("btnFullscreen").addEventListener("click", async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch (e) { log(`fullscreen: ${e.message}`, "warn"); }
+  });
+  $("btnSpin").addEventListener("click", async () => {
+    const btn = $("btnSpin");
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = "◊ Spinning…";
+    try {
+      log(`Spinning gid=${gid}…`);
+      const out = await callEngine("/slot/spin", { gid: Number(gid) });
+      setText("kWallet", Number(out.wallet ?? 0).toLocaleString());
+      const gain = Number(out.gain ?? 0);
+      if (gain > 0) log(`Win · +${gain.toLocaleString()} coins`, "ok");
+      else log("No win this round.", "warn");
+    } catch (err) {
+      log(err.message, "err");
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  });
+
+  init();
+})();
+</script>
 </body>
 </html>
