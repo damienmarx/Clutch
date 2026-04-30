@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clutch · Game</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #0b0d10; color: #e6e6e6;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    #app { min-height: 100%; display: flex; flex-direction: column; }
+    header { padding: .75rem 1rem; background: #12161b; border-bottom: 1px solid #222832;
+      display: flex; align-items: center; justify-content: space-between; font-size: .9rem; }
+    .brand { display: flex; align-items: center; gap: .6rem; font-weight: 600; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #20c997; box-shadow: 0 0 8px #20c99780; }
+    .meta { opacity: .7; font-variant-numeric: tabular-nums; }
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    .card { max-width: 720px; width: 100%; background: #12161b; border: 1px solid #222832;
+      border-radius: 14px; padding: 2rem; box-shadow: 0 10px 40px #0008; }
+    h1 { margin: 0 0 .4rem; font-size: 1.4rem; letter-spacing: .3px; }
+    p { margin: .3rem 0; opacity: .85; line-height: 1.5; }
+    code { background: #0b0d10; padding: 2px 6px; border-radius: 4px; font-size: .85em; color: #ffb454; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .75rem; margin-top: 1rem; }
+    .kv { background: #0b0d10; padding: .6rem .8rem; border-radius: 8px; border: 1px solid #1a1f26; }
+    .kv b { display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: 1px; opacity: .6; margin-bottom: 2px; }
+    .actions { margin-top: 1.25rem; display: flex; gap: .6rem; flex-wrap: wrap; }
+    button { background: #ffb454; color: #0b0d10; border: 0; padding: .65rem 1.1rem; border-radius: 8px;
+      font-weight: 600; cursor: pointer; }
+    button.secondary { background: transparent; color: #e6e6e6; border: 1px solid #2a313c; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    #log { margin-top: 1rem; background: #0b0d10; border-radius: 8px; border: 1px solid #1a1f26;
+      padding: .75rem; font-family: ui-monospace, Menlo, monospace; font-size: .8rem;
+      max-height: 260px; overflow: auto; white-space: pre-wrap; }
+    .error { color: #ff6b6b; }
+    .ok { color: #20c997; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="brand"><span class="dot"></span> Clutch Game Session</div>
+      <div class="meta" id="hdrMeta">connecting…</div>
+    </header>
+    <main>
+      <div class="card">
+        <h1 id="gameTitle">Loading game…</h1>
+        <p id="subtitle">Verifying session with the engine.</p>
+
+        <div class="grid">
+          <div class="kv"><b>Game ID</b><span id="kGid">–</span></div>
+          <div class="kv"><b>Club ID</b><span id="kCid">–</span></div>
+          <div class="kv"><b>User ID</b><span id="kUid">–</span></div>
+          <div class="kv"><b>Status</b><span id="kStatus">–</span></div>
+          <div class="kv"><b>Wallet</b><span id="kWallet">–</span></div>
+          <div class="kv"><b>Alias</b><span id="kAlias">–</span></div>
+        </div>
+
+        <div class="actions">
+          <button id="btnSpin" disabled>Spin</button>
+          <button id="btnReload" class="secondary">Reload</button>
+        </div>
+
+        <div id="log"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const qs = new URLSearchParams(location.search);
+    const gid = qs.get("gid");
+    const cid = qs.get("cid");
+    const uid = qs.get("uid");
+
+    const $ = (id) => document.getElementById(id);
+    $("kGid").textContent = gid || "missing";
+    $("kCid").textContent = cid || "missing";
+    $("kUid").textContent = uid || "missing";
+
+    const log = (m, cls) => {
+      const el = $("log");
+      const line = document.createElement("div");
+      if (cls) line.className = cls;
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${m}`;
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
+    };
+
+    async function callEngine(path, body) {
+      const res = await fetch(path, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const txt = await res.text();
+      let data; try { data = JSON.parse(txt); } catch { data = txt; }
+      if (!res.ok) {
+        const what = typeof data === "object" ? (data.what || data.error || JSON.stringify(data)) : data;
+        throw new Error(`HTTP ${res.status}: ${what}`);
+      }
+      return data;
+    }
+
+    async function init() {
+      if (!gid || !cid || !uid) {
+        $("gameTitle").textContent = "Missing session parameters";
+        $("subtitle").textContent = "This page must be opened from the Kodakclout lobby.";
+        $("hdrMeta").textContent = "no session";
+        log("Query params gid/cid/uid are required.", "error");
+        return;
+      }
+      try {
+        log(`Fetching info for gid=${gid}…`);
+        const info = await callEngine("/game/info", { gid: Number(gid) });
+        $("kAlias").textContent = info.alias || "-";
+        $("kWallet").textContent = (info.wallet ?? 0).toString();
+        $("kStatus").textContent = "ready";
+        $("gameTitle").textContent = `${info.alias || "Game"} · session live`;
+        $("subtitle").textContent = "Engine connected. This is the Kodakclout bundled loader – drop in the full Slotopol client for the animated game canvas.";
+        $("hdrMeta").textContent = `cid=${cid} · uid=${uid}`;
+        $("btnSpin").disabled = false;
+        log("Engine connection verified.", "ok");
+      } catch (err) {
+        $("gameTitle").textContent = "Session could not be loaded";
+        $("subtitle").textContent = "The engine refused the request. Check that the service account and club access are set up correctly.";
+        $("kStatus").textContent = "error";
+        $("hdrMeta").textContent = "error";
+        log(err.message, "error");
+      }
+    }
+
+    $("btnReload").addEventListener("click", () => location.reload());
+    $("btnSpin").addEventListener("click", async () => {
+      $("btnSpin").disabled = true;
+      try {
+        log(`Spinning gid=${gid}…`);
+        const out = await callEngine("/slot/spin", { gid: Number(gid) });
+        $("kWallet").textContent = (out.wallet ?? 0).toString();
+        log(`Spin ok · gain=${out.gain ?? 0}`, "ok");
+      } catch (err) {
+        log(err.message, "error");
+      } finally {
+        $("btnSpin").disabled = false;
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>

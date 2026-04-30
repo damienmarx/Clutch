@@ -157,10 +157,21 @@ func UserFromForm(c *gin.Context) (*User, int, error) {
 
 func GetBasicAuth(credentials string) (user *User, code int, err error) {
 	var decoded []byte
+	// Accept both URL-safe (no padding) AND standard base64 (with or without
+	// padding) so the endpoint works with any HTTP client. The upstream
+	// slotopol code only accepted RawURLEncoding which rejects clients that
+	// emit the standard base64 alphabet (e.g. Node's Buffer.toString("base64")).
 	if decoded, err = base64.RawURLEncoding.DecodeString(credentials); err != nil {
-		return nil, AEC_basic_decode, err
+		if decoded, err = base64.StdEncoding.DecodeString(credentials); err != nil {
+			if decoded, err = base64.RawStdEncoding.DecodeString(credentials); err != nil {
+				return nil, AEC_basic_decode, err
+			}
+		}
 	}
-	var parts = strings.Split(util.B2S(decoded), ":")
+	var parts = strings.SplitN(util.B2S(decoded), ":", 2)
+	if len(parts) != 2 {
+		return nil, AEC_basic_decode, errors.New("malformed basic credentials")
+	}
 
 	var email = util.ToLower(parts[0])
 	for _, u := range Users.Items() {
